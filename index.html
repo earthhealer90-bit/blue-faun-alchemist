@@ -27,19 +27,24 @@
     }
 
     /* Background layers */
-    #bgWrap{position:fixed;inset:0;z-index:0;}
+    #bgWrap{position:fixed;inset:0;z-index:0;overflow:hidden;}
+    #bgVideo{
+      position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+      filter:saturate(1.05) contrast(1.05);
+      opacity:.4;
+      display:none;
+    }
     #bgImg{
       position:absolute;inset:0;
-      background:
+      background-image:
         radial-gradient(1200px 900px at 50% 40%, rgba(85,214,255,.12) 0%, rgba(139,92,255,.05) 35%, rgba(0,0,0,.55) 70%),
-        radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%),
-        url("assets/world-bg.jpg");
+        radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%);
       background-size:cover;
       background-position:center;
       filter:saturate(1.1) contrast(1.05);
       opacity:.35;
+      transition:opacity .2s ease;
     }
-    /* If you don't upload assets/world-bg.jpg, browser will fail that layer and you still get gradients. */
 
     #bgCanvas{position:absolute;inset:0;width:100%;height:100%;}
     #sigilCanvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.55;filter:blur(.2px);}
@@ -266,6 +271,7 @@
 
 <body>
   <div id="bgWrap">
+    <video id="bgVideo" autoplay muted loop playsinline></video>
     <div id="bgImg"></div>
     <canvas id="bgCanvas"></canvas>
     <canvas id="sigilCanvas"></canvas>
@@ -309,7 +315,7 @@
           <h2>World Vibe</h2>
           <p>
             This screen is already generating a living backdrop (grid + sigils).
-            If you upload <b>assets/world-bg.jpg</b>, it will layer behind the UI like a mythic wallpaper.
+            This repo ships without bundled media—drop any JPG, PNG, GIF, MP4, or WEBM into <b>/assets</b> and list them in <code>assets/manifest.json</code>. The page will randomly pick one on load.
           </p>
 
           <h2>Controls</h2>
@@ -359,6 +365,8 @@ const enterBtn = document.getElementById("enterBtn");
 const randomBtn = document.getElementById("randomBtn");
 const vibeBtn = document.getElementById("vibeBtn");
 const bgImg = document.getElementById("bgImg");
+const bgVideo = document.getElementById("bgVideo");
+const statusEl = document.getElementById("status");
 
 function renderOptions(){
   optionsEl.innerHTML = "";
@@ -384,11 +392,106 @@ randomBtn.onclick = () => {
   nameEl.value = randomNames[Math.floor(Math.random() * randomNames.length)];
 };
 
+const baseGradients = [
+  "radial-gradient(1200px 900px at 50% 40%, rgba(85,214,255,.12) 0%, rgba(139,92,255,.05) 35%, rgba(0,0,0,.55) 70%)",
+  "radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%)"
+];
+
+const SUPPORTED_MEDIA = [".jpg", ".jpeg", ".png", ".gif", ".mp4", ".webm"];
+const FALLBACK_ASSETS = [];
+
+let loadedMedia = [];
+let currentMedia = null;
 let worldArtOn = true;
+
+function fileType(path){
+  const lower = path.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".webm") ? "video" : "image";
+}
+
+async function fetchManifest(){
+  try{
+    const res = await fetch("assets/manifest.json", { cache:"no-store" });
+    if(!res.ok) throw new Error("manifest missing");
+    const list = await res.json();
+    if(Array.isArray(list)) return list;
+  }catch(err){
+    console.warn("asset manifest not found, using fallback list", err);
+  }
+  return FALLBACK_ASSETS;
+}
+
+function buildMediaList(files){
+  return files
+    .filter(f => SUPPORTED_MEDIA.some(ext => f.toLowerCase().endsWith(ext)))
+    .map(f => ({
+      src: `assets/${f}`,
+      name: f,
+      type: fileType(f)
+    }));
+}
+
+function applyWorldArtVisibility(){
+  if(!worldArtOn){
+    bgVideo.pause();
+    bgVideo.style.display = "none";
+    bgImg.style.display = "block";
+    bgImg.style.backgroundImage = baseGradients.join(", ");
+    bgImg.style.opacity = 0.42;
+    return;
+  }
+
+  bgImg.style.display = "block";
+  bgImg.style.opacity = 0.35;
+
+  if(currentMedia && currentMedia.type === "video"){
+    bgVideo.style.display = "block";
+    bgVideo.play().catch(()=>{});
+    bgImg.style.backgroundImage = baseGradients.join(", ");
+  } else if(currentMedia && currentMedia.type === "image"){
+    bgVideo.pause();
+    bgVideo.style.display = "none";
+    bgImg.style.backgroundImage = `${baseGradients.join(", ")}, url('${currentMedia.src}')`;
+  } else {
+    bgVideo.pause();
+    bgVideo.style.display = "none";
+    bgImg.style.backgroundImage = baseGradients.join(", ");
+  }
+}
+
+function setStatus(text){
+  if(statusEl) statusEl.textContent = text;
+}
+
+async function initBackgroundMedia(){
+  const manifest = await fetchManifest();
+  loadedMedia = buildMediaList(manifest);
+
+  if(!loadedMedia.length){
+    currentMedia = null;
+    setStatus("SIGNAL: PROC-ONLY");
+    applyWorldArtVisibility();
+    return;
+  }
+
+  currentMedia = loadedMedia[Math.floor(Math.random() * loadedMedia.length)];
+  setStatus(`SIGNAL: ${currentMedia.type === "video" ? "VIDEO" : "IMAGE"}`);
+
+  if(currentMedia.type === "video"){
+    bgVideo.src = currentMedia.src;
+    bgVideo.style.display = "block";
+    bgVideo.play().catch(()=>{});
+  }
+
+  applyWorldArtVisibility();
+}
+
 vibeBtn.onclick = () => {
   worldArtOn = !worldArtOn;
-  bgImg.style.display = worldArtOn ? "block" : "none";
+  applyWorldArtVisibility();
 };
+
+initBackgroundMedia();
 
 /* -----------------------------
    BACKGROUND: cosmic grid + sigils
