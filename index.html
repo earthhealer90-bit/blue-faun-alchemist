@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BLUE FAUN // ALCHEMIST RPG</title>
+  <style>
+    :root{
+      --bg0:#060612;
+      --bg1:#0b0b1e;
+      --ink:#dbe6ff;
+      --muted:#8da1d6;
+      --glow:#58a6ff;
+      --glow2:#7c5cff;
+      --danger:#ff4fd8;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; background: radial-gradient(1200px 800px at 50% 40%, var(--bg1), var(--bg0)); color:var(--ink); }
+
+    /* Pixel-ish vibes without external fonts */
+    body{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      overflow:hidden;
+    }
+
+    .wrap{
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .frame{
+      width:min(860px, 96vw);
+      border:1px solid rgba(88,166,255,.35);
+      border-radius:18px;
+      background:
+        linear-gradient(180deg, rgba(88,166,255,.08), rgba(124,92,255,.05)),
+        radial-gradient(800px 500px at 30% 20%, rgba(88,166,255,.15), transparent 60%),
+        radial-gradient(700px 450px at 70% 80%, rgba(255,79,216,.08), transparent 60%),
+        rgba(0,0,0,.35);
+      box-shadow: 0 0 0 1px rgba(124,92,255,.18) inset, 0 24px 70px rgba(0,0,0,.55);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Scanlines */
+    .frame::before{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.03),
+        rgba(255,255,255,.03) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+      mix-blend-mode: overlay;
+      pointer-events:none;
+      opacity:.35;
+    }
+
+    /* Subtle moving shimmer */
+    .frame::after{
+      content:"";
+      position:absolute; inset:-60% -60%;
+      background: conic-gradient(from 180deg at 50% 50%,
+        transparent 0deg,
+        rgba(88,166,255,.08) 40deg,
+        transparent 90deg,
+        rgba(124,92,255,.07) 140deg,
+        transparent 220deg,
+        rgba(255,79,216,.05) 260deg,
+        transparent 360deg
+      );
+      animation: drift 12s linear infinite;
+      pointer-events:none;
+      opacity:.7;
+    }
+
+    @keyframes drift{
+      0%{ transform: rotate(0deg) translate3d(0,0,0); }
+      100%{ transform: rotate(360deg) translate3d(0,0,0); }
+    }
+
+    .content{
+      position:relative;
+      padding:42px 34px;
+      display:grid;
+      gap:18px;
+    }
+
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .kicker{
+      letter-spacing:.18em;
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+
+    .title{
+      font-size: clamp(26px, 4vw, 46px);
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin:0;
+      text-shadow: 0 0 18px rgba(88,166,255,.35);
+    }
+
+    .subtitle{
+      margin:0;
+      color:rgba(219,230,255,.82);
+      line-height:1.4;
+      max-width:56ch;
+    }
+
+    .sigil{
+      width:110px;
+      height:110px;
+      border-radius:20px;
+      border:1px solid rgba(88,166,255,.35);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(88,166,255,.35), transparent 55%),
+        radial-gradient(circle at 70% 70%, rgba(124,92,255,.25), transparent 55%),
+        rgba(0,0,0,.28);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 18px 55px rgba(0,0,0,.45);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .sigil svg{
+      position:absolute; inset:12px;
+      filter: drop-shadow(0 0 10px rgba(88,166,255,.45));
+      opacity:.95;
+    }
+
+    .panel{
+      margin-top:12px;
+      padding:18px 18px;
+      border-radius:14px;
+      border:1px solid rgba(141,161,214,.22);
+      background: rgba(0,0,0,.25);
+      display:grid;
+      gap:10px;
+    }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      color:rgba(219,230,255,.78);
+      font-size:14px;
+    }
+
+    .row strong{ color:rgba(219,230,255,.95); font-weight:700; }
+
+    .actions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(88,166,255,.55);
+      background:
+        linear-gradient(180deg, rgba(88,166,255,.22), rgba(124,92,255,.12));
+      color:var(--ink);
+      padding:14px 18px;
+      border-radius:14px;
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+      transition: transform .12s ease, border-color .12s ease, filter .12s ease;
+    }
+
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,79,216,.4);
+      filter: brightness(1.06);
+    }
+
+    .btn:active{
+      transform: translateY(0px) scale(.99);
+    }
+
+    .btn .blink{
+      display:inline-block;
+      margin-left:10px;
+      width:9px; height:9px;
+      border-radius:999px;
+      background: var(--danger);
+      box-shadow: 0 0 14px rgba(255,79,216,.8);
+      animation: pulse 1.1s ease-in-out infinite;
+      vertical-align:middle;
+    }
+
+    @keyframes pulse{
+      0%,100%{ transform: scale(.85); opacity:.55;}
+      50%{ transform: scale(1.15); opacity:1;}
+    }
+
+    .hint{
+      color:rgba(141,161,214,.85);
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .footer{
+      margin-top:10px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      color:rgba(141,161,214,.75);
+      font-size:12px;
+    }
+
+    /* Screen swap */
+    .screen{ display:none; }
+    .screen.active{ display:block; }
+
+    .fadeOut{ animation: fadeOut .35s ease forwards; }
+    @keyframes fadeOut{ to { opacity:0; transform: translateY(6px); } }
+
+    .fadeIn{ animation: fadeIn .35s ease forwards; }
+    @keyframes fadeIn{ from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+
+    /* Game placeholder */
+    .gameWrap{
+      padding:26px;
+      display:grid;
+      gap:14px;
+    }
+
+    canvas{
+      width:100%;
+      max-width:860px;
+      aspect-ratio: 16 / 9;
+      background: radial-gradient(900px 520px at 40% 35%, rgba(88,166,255,.10), transparent 60%),
+                  rgba(0,0,0,.38);
+      border:1px solid rgba(88,166,255,.3);
+      border-radius:16px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset;
+    }
+
+    .gameHud{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:rgba(219,230,255,.82);
+      font-size:13px;
+    }
+
+    .tag{
+      border:1px solid rgba(141,161,214,.22);
+      padding:8px 10px;
+      border-radius:12px;
+      background: rgba(0,0,0,.22);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="frame">
+      <!-- START SCREEN -->
+      <section id="startScreen" class="content screen active">
+        <div class="top">
+          <div class="brand">
+            <div class="kicker">2D RPG PROTOTYPE // WEB BUILD</div>
+            <h1 class="title">BLUE FAUN ALCHEMIST</h1>
+            <p class="subtitle">
+              You play the Alchemist—blue faun, code-forger, myth-maker—
+              building the very world you’re walking through.
+              Reality: crafted. Inventory: weird. Destiny: patch-notes pending.
+            </p>
+          </div>
+
+          <div class="sigil" aria-label="sigil">
+            <!-- Simple geometric “sigil” -->
+            <svg viewBox="0 0 100 100" fill="none">
+              <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" stroke="rgba(88,166,255,.95)" stroke-width="2"/>
+              <circle cx="50" cy="50" r="18" stroke="rgba(124,92,255,.9)" stroke-width="2"/>
+              <path d="M50 20 V80" stroke="rgba(255,79,216,.65)" stroke-width="2"/>
+              <path d="M22 38 L78 62" stroke="rgba(219,230,255,.7)" stroke-width="1.6"/>
+              <path d="M78 38 L22 62" stroke="rgba(219,230,255,.7)" stroke-width="1.6"/>
+              <circle cx="50" cy="50" r="3.5" fill="rgba(255,79,216,.8)"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="row"><span>MODE</span><strong>Story Seed</strong></div>
+          <div class="row"><span>PLAYER</span><strong>The Blue Faun (Alchemist)</strong></div>
+          <div class="row"><span>CORE LOOP</span><strong>Explore → Craft → Rewrite</strong></div>
+          <div class="row"><span>STATUS</span><strong>Boot Sequence Armed</strong></div>
+        </div>
+
+        <div class="actions">
+          <button id="startBtn" class="btn">
+            Press Start to Play <span class="blink" aria-hidden="true"></span>
+          </button>
+          <div class="hint">Tip: you can later bind this to Enter / Space.</div>
+        </div>
+
+        <div class="footer">
+          <div>© <span id="year"></span> // “The world is a recipe.”</div>
+          <div>Build: v0.0.1 • Signal: Stable-ish</div>
+        </div>
+      </section>
+
+      <!-- GAME SCREEN -->
+      <section id="gameScreen" class="screen">
+        <div class="gameWrap fadeIn">
+          <div class="gameHud">
+            <div class="tag">WASD / Arrow Keys: move (next step)</div>
+            <div class="tag">E: interact (next step)</div>
+            <div class="tag">I: inventory (next step)</div>
+          </div>
+
+          <canvas id="game" width="960" height="540"></canvas>
+
+          <div class="footer">
+            <div>Placeholder scene loaded. Next: tilemap + sprite + collisions.</div>
+            <div class="hint">This is just the doorway. Now we build the temple.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ---- Basic screen swap ----
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen  = document.getElementById('gameScreen');
+    const startBtn    = document.getElementById('startBtn');
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function goGame(){
+      startScreen.classList.add('fadeOut');
+      setTimeout(() => {
+        startScreen.classList.remove('active');
+        gameScreen.classList.add('active');
+        bootGame();
+      }, 360);
+    }
+
+    startBtn.addEventListener('click', goGame);
+
+    // Optional: press Enter/Space to start
+    window.addEventListener('keydown', (e) => {
+      if (!startScreen.classList.contains('active')) return;
+      if (e.key === 'Enter' || e.key === ' ') goGame();
+    });
+
+    // ---- Minimal “game boot” placeholder ----
+    function bootGame(){
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+
+      // simple animated star-drift so the screen isn't dead
+      let t = 0;
+      const stars = Array.from({length: 120}, () => ({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        z: Math.random()*1.5 + 0.5
+      }));
+
+      function draw(){
+        t += 0.016;
+
+        // background
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // stars
+        for (const s of stars){
+          s.x -= s.z * 0.65;
+          if (s.x < -2){ s.x = canvas.width + 2; s.y = Math.random()*canvas.height; }
+          ctx.globalAlpha = 0.9;
+          ctx.fillStyle = "rgba(219,230,255,0.85)";
+          ctx.fillRect(s.x, s.y, 2, 2);
+        }
+
+        // title text
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "rgba(219,230,255,0.95)";
+        ctx.font = "28px ui-monospace, monospace";
+        ctx.fillText("Scene: The Alchemist's Workbench", 42, 70);
+
+        ctx.fillStyle = "rgba(141,161,214,0.9)";
+        ctx.font = "16px ui-monospace, monospace";
+        ctx.fillText("Next step: add player sprite + map + collision grid.", 42, 102);
+
+        // simple “portal ring”
+        const cx = canvas.width * 0.78;
+        const cy = canvas.height * 0.60;
+        const r  = 78 + Math.sin(t*1.2)*6;
+
+        ctx.strokeStyle = "rgba(88,166,255,0.65)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(124,92,255,0.5)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r-18, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(255,79,216,0.7)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3.2, 0, Math.PI*2);
+        ctx.fill();
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+  </script>
+</body>
+</html>
