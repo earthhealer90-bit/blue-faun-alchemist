@@ -27,22 +27,19 @@
     }
 
     /* Background layers */
-    #bgWrap{position:fixed;inset:0;z-index:0;}
-    #bgImg{
-      position:absolute;inset:0;
-      background:
+    #bgWrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+    #bgMedia,#bgImg,#bgCanvas,#sigilCanvas{position:absolute;inset:0;width:100%;height:100%;}
+    #bgMedia{z-index:0;background-size:cover;background-position:center;filter:saturate(1.08) contrast(1.04);opacity:.55;}
+    #bgImg{z-index:1;background:
         radial-gradient(1200px 900px at 50% 40%, rgba(85,214,255,.12) 0%, rgba(139,92,255,.05) 35%, rgba(0,0,0,.55) 70%),
-        radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%),
-        url("assets/world-bg.jpg");
-      background-size:cover;
-      background-position:center;
+        radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%);
       filter:saturate(1.1) contrast(1.05);
       opacity:.35;
     }
-    /* If you don't upload assets/world-bg.jpg, browser will fail that layer and you still get gradients. */
-
-    #bgCanvas{position:absolute;inset:0;width:100%;height:100%;}
-    #sigilCanvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.55;filter:blur(.2px);}
+    .bgVideo{width:100%;height:100%;object-fit:cover;}
+    #bgCanvas{z-index:2;}
+    #sigilCanvas{z-index:3;mix-blend-mode:screen;opacity:.55;filter:blur(.2px);}
+    #bgWrap video,#bgWrap canvas,#bgWrap div{pointer-events:none;}
 
     /* UI shell */
     .ui{
@@ -266,6 +263,7 @@
 
 <body>
   <div id="bgWrap">
+    <div id="bgMedia"></div>
     <div id="bgImg"></div>
     <canvas id="bgCanvas"></canvas>
     <canvas id="sigilCanvas"></canvas>
@@ -302,6 +300,7 @@
           <div class="formRow">
             <button class="btn" id="enterBtn">Enter World</button>
             <button class="btn ghost" id="vibeBtn">Toggle World Art</button>
+            <button class="btn ghost" id="shuffleBtn">Shuffle World</button>
           </div>
         </div>
 
@@ -358,7 +357,11 @@ const nameEl = document.getElementById("playerName");
 const enterBtn = document.getElementById("enterBtn");
 const randomBtn = document.getElementById("randomBtn");
 const vibeBtn = document.getElementById("vibeBtn");
+const shuffleBtn = document.getElementById("shuffleBtn");
+const bgWrap = document.getElementById("bgWrap");
 const bgImg = document.getElementById("bgImg");
+const bgMedia = document.getElementById("bgMedia");
+const statusText = document.getElementById("status");
 
 function renderOptions(){
   optionsEl.innerHTML = "";
@@ -387,8 +390,72 @@ randomBtn.onclick = () => {
 let worldArtOn = true;
 vibeBtn.onclick = () => {
   worldArtOn = !worldArtOn;
-  bgImg.style.display = worldArtOn ? "block" : "none";
+  bgWrap.style.display = worldArtOn ? "block" : "none";
 };
+
+/* -----------------------------
+   WORLD MEDIA
+-------------------------------- */
+const worldMedia = [
+  "assets/pandivinity_blue_faun_says_hello_to_a_familar_old_human_self__5db9bba2-3d49-40eb-9fc6-7087f0d8da19_0.mp4",
+  "assets/pandivinity_grid_hacker_horned_boy_with_shadow_powers_hacking_43662790-9f73-4dfd-9493-62bfef416afd_1.png",
+  "assets/pandivinity_httpss.mj.runX_8EM7QBQiI_new_collective_grid_sour_65e2c583-a4e7-4efd-abfe-d992b728a55e_2 (1).png",
+  "assets/social_pandivinity_An_intergalactic_vessel_known_as_Echo_Null_a_sent_77f4c368-a5c5-432a-a179-11151ea940c5_0.mp4",
+  "assets/vidu-video-2698217084946203.mp4",
+];
+
+const baseGradients = `radial-gradient(1200px 900px at 50% 40%, rgba(85,214,255,.12) 0%, rgba(139,92,255,.05) 35%, rgba(0,0,0,.55) 70%),
+  radial-gradient(900px 700px at 70% 25%, rgba(139,92,255,.12) 0%, rgba(0,0,0,.65) 65%)`;
+
+let currentWorld = null;
+function isVideo(file){
+  return /\.(mp4|webm)$/i.test(file);
+}
+
+function pickRandom(arr, avoid){
+  if (!arr.length) return null;
+  let choice = arr[Math.floor(Math.random() * arr.length)];
+  if (arr.length > 1){
+    while (choice === avoid){
+      choice = arr[Math.floor(Math.random() * arr.length)];
+    }
+  }
+  return choice;
+}
+
+function applyWorld(mediaPath){
+  if (!mediaPath) return;
+  currentWorld = mediaPath;
+  const encoded = encodeURI(mediaPath);
+  bgMedia.innerHTML = "";
+  bgMedia.style.backgroundImage = "";
+
+  if (isVideo(mediaPath)){
+    const video = document.createElement("video");
+    video.className = "bgVideo";
+    video.src = encoded;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("muted", "muted");
+    bgMedia.appendChild(video);
+    video.play().catch(()=>{});
+  } else {
+    bgMedia.style.backgroundImage = `url("${encoded}")`;
+  }
+
+  bgImg.style.backgroundImage = baseGradients;
+  const shortName = mediaPath.split("/").pop();
+  statusText.textContent = `WORLD: ${shortName}`;
+}
+
+function shuffleWorld(){
+  applyWorld(pickRandom(worldMedia, currentWorld));
+}
+
+shuffleBtn.onclick = shuffleWorld;
+shuffleWorld();
 
 /* -----------------------------
    BACKGROUND: cosmic grid + sigils
