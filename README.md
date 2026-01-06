@@ -21,7 +21,7 @@ Use `/start` to see instructions and `/scan <target>` to receive a structured sc
 
 ## Using the bot in Telegram
 
-1. In Telegram, search for the bot username you registered with BotFather (e.g., `@echo_null_bot`).
+1. In Telegram, search for the bot username you registered with BotFather (right now it is `@ulga333bot`; if you rename it later, use the new handle).
 2. Tap **Start** to open the chat and confirm the bot is online.
 3. Send `/start` for a quick primer, then `/scan` with or without a focus:
    - `/scan`
