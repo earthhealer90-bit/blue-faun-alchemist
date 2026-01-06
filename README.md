@@ -19,6 +19,15 @@ A minimal Telegram bot that delivers ECHO NULL style circuitry scan outputs. It 
 
 Use `/start` to see instructions and `/scan <target>` to receive a structured scan.
 
+## Using the bot in Telegram
+
+1. In Telegram, search for the bot username you registered with BotFather (e.g., `@echo_null_bot`).
+2. Tap **Start** to open the chat and confirm the bot is online.
+3. Send `/start` for a quick primer, then `/scan` with or without a focus:
+   - `/scan`
+   - `/scan project launch`
+4. The bot runs wherever `bot.py` is active (locally or on Render); if the chat does not respond, confirm the process is running and the `BOT_TOKEN` matches the BotFather token.
+
 ## Deploying to Render
 
 Create a **Worker** service that uses this repository.
